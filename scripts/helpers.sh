@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # 
-# Prints the current weather in Celsius, Fahrenheits or lord Kelvins. 
-# The forecast is cached and updated with a period of $update_period.
+# get_location: detects your location, returns (lat, lon)
+# get_data: get data from FORECAST.io, returns (json)
+# parse_data: parses data, returns (icon, degree)
+#
+# note: 
+# - degree: set UNIT="american" or UNIT="ce" (Fahrenheits vs Celsius)
+# - API_KEY: use mine or just get one from http://forecast.io
+# - period: set $update_period to adjust caching period
 
 # The update period in seconds.
 update_period=600 # 10 mins
@@ -23,17 +29,17 @@ TMUX_POWERLINE_SEG_WEATHER_LOCATION_DEFAULT="2354842" # Ann Arbor
 
 
 get_location() {
-	# if [ -f "$tmp_file" ]; then
-    # last_update=$(stat -c "%Y" ${tmp_file})
-	# 	time_now=$(date +%s)
-	# 	up_to_date=$(echo "(${time_now}-${last_update}) < ${update_period}" | bc)
-	# 	if [ "$up_to_date" -eq 1 ]; then
-      # weather_data=$(__read_tmp_file)
-      # # echo "recyclying!!"
-	# 	fi
-	# fi
+	if [ -f "$tmp_file" ]; then
+    last_update=$(stat -c "%Y" ${tmp_file})
+		time_now=$(date +%s)
+		up_to_date=$(echo "(${time_now}-${last_update}) < ${update_period}" | bc)
+		if [ "$up_to_date" -eq 1 ]; then
+      weather_data=$(__read_tmp_file)
+      # echo "recyclying!!"
+      echo $weather_data
+		fi
+	fi
   if [ -z "$weather_data" ]; then
-
     location_data=$(curl --max-time 4 -s $GEO_PROVIDER)
     IFS=',' read -a location_vars <<< "$location_data"
 
@@ -41,9 +47,9 @@ get_location() {
     lon=${location_vars[8]}
     # echo "$lat,$lon"
     degree=$(get_data $lat $lon)
+    echo $degree > ${tmp_file}
+    weather_data=$degree
     echo $degree
-
-    # echo "$weather_data" > ${tmp_file}
   fi
 }
 
