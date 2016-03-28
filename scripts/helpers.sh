@@ -75,7 +75,7 @@ get_data() {
 }
 
 f_to_c() {
-  echo "scale=1; (($1 - 32) * 5) / 9" | bc
+  echo "scale=0; (($1 - 32) * 5) / 9" | bc
 }
 
 c_to_f() {
@@ -145,14 +145,14 @@ __read_tmp_file() {
 }
 
 get_tmux_option() {
-	local option="$1"
-	local default_value="$2"
-	local option_value="$(tmux show-option -gqv "$option")"
-	if [ -z "$option_value" ]; then
-		echo "$default_value"
-	else
-		echo "$option_value"
-	fi
+  local option="$1"
+  local default_value="$2"
+  local option_value="$(tmux show-option -gqv "$option")"
+  if [ -z "$option_value" ]; then
+    echo "$default_value"
+  else
+    echo "$option_value"
+  fi
 }
 
 command_exists() {
