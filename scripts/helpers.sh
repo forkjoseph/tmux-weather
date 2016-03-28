@@ -12,11 +12,14 @@
 # The update period in seconds.
 update_period=600 # 10 mins
 tmp_file="/tmp/.tmux-weather.txt"
+tmp_location="/tmp/.tmux-weather-location.txt"
 
 # global vars
+UNIT="ce"
 GEO_PROVIDER="http://ip-api.com/csv"
 FORECAST="https://api.forecast.io/forecast"
 FORECAST_API_KEY="eb55f102b6683b9af28d4a40abcb69be"
+DEBUG=true
 
 TMUX_POWERLINE_SEG_WEATHER_DATA_PROVIDER_DEFAULT="yahoo"
 TMUX_POWERLINE_SEG_WEATHER_UNIT_DEFAULT="c"
@@ -27,65 +30,75 @@ TMUX_POWERLINE_SEG_WEATHER_GREP_DEFAULT="grep"
 TMUX_POWERLINE_SEG_WEATHER_LOCATION_DEFAULT="2354842" # Ann Arbor
 
 
-
 get_location() {
-	if [ -f "$tmp_file" ]; then
-    last_update=$(stat -c "%Y" ${tmp_file})
-		time_now=$(date +%s)
-		up_to_date=$(echo "(${time_now}-${last_update}) < ${update_period}" | bc)
-		if [ "$up_to_date" -eq 1 ]; then
-      weather_data=$(__read_tmp_file)
-      # echo "recyclying!!"
-      echo $weather_data
-		fi
-	fi
-  if [ -z "$weather_data" ]; then
-    location_data=$(curl --max-time 4 -s $GEO_PROVIDER)
-    IFS=',' read -a location_vars <<< "$location_data"
+  sanity=$(fresh ${tmp_location})
+  __debug "location sanity is ${sanity}"
 
-    lat=${location_vars[7]}
-    lon=${location_vars[8]}
-    # echo "$lat,$lon"
-    degree=$(get_data $lat $lon)
-    echo $degree > ${tmp_file}
-    weather_data=$degree
-    echo $degree
+  if [ "${sanity}" -gt 0 ]; then
+    location_data=$(__read_tmp_file ${tmp_location})
+    __debug "recyclying!!" ${location_data}
+  elif [ "${sanity}" -le 0 ]; then 
+    # either timer expired or DNE
+    location_data=$(curl --max-time 4 -s $GEO_PROVIDER)
+    __debug $location_data
+
+    # cache...
+    echo $location_data > ${tmp_location}
   fi
+
+  # read as an array
+  IFS=',' read -a location_vars <<< "$location_data"
+  lat=${location_vars[7]}
+  lon=${location_vars[8]}
+  __debug "${lat},${lon}"
+
+  echo "${lat},${lon}"
+  return 
 }
 
-get_data() {    
-  lat=$1
-  lon=$2
+get_data() {
+  sanity=$(fresh ${tmp_file})
+  __debug "data sanity is ${sanity}"
 
-  prefix="\"data\""
-  suffix="}}"
-  weather_data=$(curl --max-time 4 -s \
-    "${FORECAST}/${FORECAST_API_KEY}/$lat,$lon,$(date +%s)")
+  if [ "${sanity}" -gt 0 ]; then
+    weather_data=$(__read_tmp_file ${tmp_file})
+    __debug "recyclying!!" ${weather_data}
+  elif [ "${sanity}" -le 0 ]; then 
+    location=$1
 
-  # echo $weather_data | sed "s/^$prefix//" #| sed "s/$suffix$//"
+    prefix="\"data\""
+    suffix="}}"
+    weather_data=$(curl --max-time 4 -s \
+      "${FORECAST}/${FORECAST_API_KEY}/${location},$(date +%s)")
+    # echo $weather_data | sed "s/^$prefix//" #| sed "s/$suffix$//"
+    echo ${weather_data} > ${tmp_file}
+  fi
 
-  IFS=',' read -a weather_vars <<< "$weather_data"
-  len=${#weather_vars[@]}
+  echo ${weather_data}
+  return
+
+  # IFS=',' read -a weather_vars <<< "$weather_data"
+  # len=${#weather_vars[@]}
     
-  bool_degree=false
-  bool_icon=false
+  # bool_degree=false
+  # bool_icon=false
 
-  for (( i=0; i<${len}; i++ )); do
-    string=${weather_vars[$i]}
-    if [[ $string == *"temperature"* ]] || [[ $string == *"icon"* ]]; then
-      if test "$bool_icon" = "false"; then
-        prefix='\"icon\":'
-        icon=${string#$prefix}
-        bool_icon=true
-      elif test "$bool_degree" = "false"; then
-        prefix='\"temperature\":'
-        fa=${string#$prefix}
-        degree=$(f_to_c $fa)
-        bool_degree=true
-      fi
-    fi
-  done
-  echo $icon $degree
+  # for (( i=0; i<${len}; i++ )); do
+  #   string=${weather_vars[$i]}
+  #   if [[ $string == *"temperature"* ]] || [[ $string == *"icon"* ]]; then
+  #     if test "$bool_icon" = "false"; then
+  #       prefix='\"icon\":'
+  #       icon=${string#$prefix}
+  #       bool_icon=true
+  #     elif test "$bool_degree" = "false"; then
+  #       prefix='\"temperature\":'
+  #       fa=${string#$prefix}
+  #       degree=$(f_to_c $fa)
+  #       bool_degree=true
+  #     fi
+  #   fi
+  # done
+  # echo $icon $degree
 }
 
 f_to_c() {
@@ -152,10 +165,10 @@ __process_settings() {
 }
 
 __read_tmp_file() {
-	if [ ! -f "$tmp_file" ]; then
+  if [ ! -f "$1" ]; then
 		return
 	fi
-	cat "${tmp_file}"
+  cat "$1"
 	exit
 }
 
@@ -175,4 +188,27 @@ command_exists() {
 	type "$command" >/dev/null 2>&1
 }
 
-get_location
+__debug() {
+  if test "$DEBUG" = "true"; then
+    echo $@
+  fi
+}
+
+# > 0 : time not expired
+# = 0 : timer expired
+# < 0 : file DNE
+fresh() {
+  file_name="$1"
+  if [ -f "$file_name" ]; then
+    # sanity check...
+    last_update=$(stat -c "%Y" ${file_name})
+		time_now=$(date +%s)
+		up_to_date=$(echo "(${time_now}-${last_update}) < ${update_period}" | bc)
+    echo "${up_to_date}"
+  else 
+    echo -1
+  fi
+}
+
+
+# get_location
