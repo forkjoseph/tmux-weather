@@ -16,30 +16,32 @@ __get_condition_symbol() {
     string=${weather_vars[$i]}
     if test "$bool_icon" = "false"; then
       if [[ $string == *"icon"* ]]; then
-        prefix='\"icon\":'
+        prefix='\"icon\":\"'
+        suffix='\"'
         icon_str=${string#$prefix}
+        icon_str=${icon_str%$suffix}
         bool_icon=true
       fi
     fi
   done
 
   __debug ${icon_str}
-  echo ${icon_str}
-  condition=${icon_str}
    
+  # supported:
   # clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy,
   # partly-cloudy-day, or partly-cloudy-night
-	case "$condition" in
-		"sunny" | "hot")
-			hourmin=$(date +%H%M)
-			if [ "$hourmin" -ge "$sunset" -o "$hourmin" -le "$sunrise" ]; then
-				#echo "☽"
-				echo "☾"
-			else
-				#echo "☀"
-				echo "☼"
-			fi
-			;;
+  case $icon_str in
+    "sunny" | "hot")
+      hourmin=$(date +%H%M)
+      if [ "$hourmin" -ge "$sunset" -o "$hourmin" -le "$sunrise" ]; 
+      then
+        #echo "☽"
+        echo "☾"
+      else
+        #echo "☀"
+        echo "☼"
+      fi
+    ;;
 		"rain" | "mixed rain and snow" | "mixed rain and sleet" | "freezing drizzle" | "drizzle" | "light drizzle" | "freezing rain" | "showers" | "mixed rain and hail" | "scattered showers" | "isolated thundershowers" | "thundershowers" | "light rain with thunder" | "light rain" | "rain and snow")
 			#echo "☂"
 			echo "☔"
@@ -73,7 +75,7 @@ __get_condition_symbol() {
 			fi
 			;;
 		*)
-			echo "?"
+			echo "?$condition"
 			;;
 	esac
 }
