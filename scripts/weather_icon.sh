@@ -45,7 +45,7 @@ __get_condition_symbol() {
     "rain" | "mixed rain and snow" | "mixed rain and sleet" | "freezing drizzle" | "drizzle" | "light drizzle" | "freezing rain" | "showers" | "mixed rain and hail" | "scattered showers" | "isolated thundershowers" | "thundershowers" | "light rain with thunder" | "light rain" | "rain and snow")
       # echo "☂"
       echo "☔"
-		  ;;
+      ;;
     "snow" | "mixed snow and sleet" | "snow flurries" | "light snow showers" | "blowing snow" | "sleet" | "hail" | "heavy snow" | "scattered snow showers" | "snow showers" | "light snow" | "snow/windy" | "snow grains" | "snow/fog")
       # echo "☃"
       echo "❅"
@@ -63,21 +63,22 @@ __get_condition_symbol() {
       echo "〰"
       ;;
     "windy" | "fair/windy" | "wind")
-			#echo "⚐"
-			echo "⚑"
-			;;
+      # echo "⚐"
+      echo "⚑"
+      ;;
     "clear" | "fair" | "cold" | "clear-day" | "clear-night")
-			hourmin=$(date +%H%M)
-			if [ "$hourmin" -ge "$sunset" -o "$hourmin" -le "$sunrise" ]; then
-				echo "☾"
-			else
-				echo "〇"
-			fi
-			;;
-		*)
-			echo "?$condition"
-			;;
-	esac
+      hourmin=$(date +%H%M)
+      if [ "$hourmin" -ge "$sunset" -o "$hourmin" -le "$sunrise" ]; 
+      then
+        echo "☾"
+      else
+        echo "〇"
+      fi
+      ;;
+    *)
+      echo "?$icon_str"
+      ;;
+  esac
 }
 
 
