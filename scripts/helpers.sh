@@ -169,7 +169,6 @@ __read_tmp_file() {
     return
   fi
   cat "$1"
-	exit
 }
 
 get_tmux_option() {
