@@ -76,29 +76,6 @@ get_data() {
 
   echo ${weather_data}
   return
-
-  # IFS=',' read -a weather_vars <<< "$weather_data"
-  # len=${#weather_vars[@]}
-    
-  # bool_degree=false
-  # bool_icon=false
-
-  # for (( i=0; i<${len}; i++ )); do
-  #   string=${weather_vars[$i]}
-  #   if [[ $string == *"temperature"* ]] || [[ $string == *"icon"* ]]; then
-  #     if test "$bool_icon" = "false"; then
-  #       prefix='\"icon\":'
-  #       icon=${string#$prefix}
-  #       bool_icon=true
-  #     elif test "$bool_degree" = "false"; then
-  #       prefix='\"temperature\":'
-  #       fa=${string#$prefix}
-  #       degree=$(f_to_c $fa)
-  #       bool_degree=true
-  #     fi
-  #   fi
-  # done
-  # echo $icon $degree
 }
 
 f_to_c() {

@@ -9,13 +9,11 @@ parse_data() {
   location=$(get_location)
   weather_data=$(get_data ${location})
 
-  if [ -z "${degree}" ]; then
-    error=$(echo "$weather_data" | grep "error");
-    if [ -n "$error" ]; then
-      rm -f ${tmp_location} ${tmp_file}
-      echo "error"
-      exit 1
-    fi
+  error=$(echo "$weather_data" | grep "error");
+  if [ -n "$error" ]; then
+    rm -f ${tmp_location} ${tmp_file}
+    echo "error"
+    exit 1
   fi
 
   IFS=',' read -a weather_vars <<< "$weather_data"
