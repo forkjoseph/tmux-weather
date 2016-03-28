@@ -202,8 +202,8 @@ fresh() {
   if [ -f "$file_name" ]; then
     # sanity check...
     last_update=$(stat -c "%Y" ${file_name})
-		time_now=$(date +%s)
-		up_to_date=$(echo "(${time_now}-${last_update}) < ${update_period}" | bc)
+    time_now=$(date +%s)
+    up_to_date=$(echo "(${time_now}-${last_update}) < ${update_period}" | bc)
     echo "${up_to_date}"
   else 
     echo -1
