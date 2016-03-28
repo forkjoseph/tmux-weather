@@ -166,8 +166,8 @@ __process_settings() {
 
 __read_tmp_file() {
   if [ ! -f "$1" ]; then
-		return
-	fi
+    return
+  fi
   cat "$1"
 	exit
 }
