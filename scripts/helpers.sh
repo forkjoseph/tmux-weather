@@ -10,76 +10,69 @@
 # - period: set $update_period to adjust caching period
 
 # The update period in seconds.
+data_update_period=600 # 10 mins
+loc_update_period=3600 # 60 mins
 update_period=600 # 10 mins
 tmp_file="/tmp/.tmux-weather.txt"
-tmp_location="/tmp/.tmux-weather-location.txt"
 
 # global vars
 UNIT="ce"
 GEO_PROVIDER="http://ip-api.com/csv"
 FORECAST="https://api.forecast.io/forecast"
 FORECAST_API_KEY="eb55f102b6683b9af28d4a40abcb69be"
-DEBUG=true
-
-TMUX_POWERLINE_SEG_WEATHER_UNIT_DEFAULT="c"
-TMUX_POWERLINE_SEG_WEATHER_UPDATE_PERIOD_DEFAULT="600" # 10 mins
-# TMUX_POWERLINE_SEG_WEATHER_UPDATE_PERIOD_DEFAULT="6" # 10 mins
-TMUX_POWERLINE_SEG_WEATHER_GREP_DEFAULT="grep"
+# DEBUG=true
 
 get_location() {
-  sanity=$(fresh ${tmp_location})
-  __debug "location sanity is ${sanity}"
+  local ts=$TMUX_WEATHER_LOC_TS
+  local sanity=$(__loc_sanity)
+  __debug "location sanity is ${sanity} ${ts}"
 
+  local lat
+  local lon
   if [ "${sanity}" -gt 0 ]; then
-    location_data=$(__read_tmp_file ${tmp_location})
-    __debug "recyclying!!" ${location_data}
+    lat=$TMUX_WEATHER_LOC_LAT
+    lon=$TMUX_WEATHER_LOC_LON
   elif [ "${sanity}" -le 0 ]; then 
     # either timer expired or DNE
     location_data=$(curl --max-time 4 -s $GEO_PROVIDER)
-    __debug $location_data
+    # __debug $location_data
 
+    # read as an array
+    IFS=',' read -a location_vars <<< "$location_data"
+    lat=${location_vars[7]}
+    lon=${location_vars[8]}
+ 
     # cache...
-    echo $location_data > ${tmp_location}
+    export TMUX_WEATHER_LOC_TS="$(date +%s)"
   fi
 
-  # read as an array
-  IFS=',' read -a location_vars <<< "$location_data"
-  lat=${location_vars[7]}
-  lon=${location_vars[8]}
-  __debug "${lat},${lon}"
+  __debug "Lat:${lat}, Lon:${lon}, TS:${ts}"
 
-  echo "${lat},${lon}"
+  export TMUX_WEATHER_LOC_LAT="${lat}"
+  export TMUX_WEATHER_LOC_LON="${lon}"
   return 
 }
 
 get_data() {
-  sanity=$(fresh ${tmp_file})
+  local sanity=$(__fresh ${tmp_file})
+  # local sanity=$(__data_sanity)
   __debug "data sanity is ${sanity}"
 
   if [ "${sanity}" -gt 0 ]; then
     weather_data=$(__read_tmp_file ${tmp_file})
     __debug "recyclying!!" ${weather_data}
   elif [ "${sanity}" -le 0 ]; then 
-    location=$1
-
     prefix="\"data\""
     suffix="}}"
-    weather_data=$(curl --max-time 4 -s \
-      "${FORECAST}/${FORECAST_API_KEY}/${location},$(date +%s)")
+    local URL="${FORECAST}/${FORECAST_API_KEY}/$TMUX_WEATHER_LOC_LAT,$TMUX_WEATHER_LOC_LON,$(date +%s)"
+    __debug "URL is ${URL}"
+    weather_data=$(curl --max-time 4 -s ${URL})
     # echo $weather_data | sed "s/^$prefix//" #| sed "s/$suffix$//"
     echo ${weather_data} > ${tmp_file}
   fi
 
   echo ${weather_data}
   return
-}
-
-f_to_c() {
-  echo "scale=0; (($1 - 32) * 5) / 9" | bc
-}
-
-c_to_f() {
-  echo "scale=1; (($1 * 9) / 5) + 32" | bc
 }
 
 generate_segmentrc() {
@@ -92,10 +85,6 @@ generate_segmentrc() {
   export TMUX_POWERLINE_SEG_WEATHER_UPDATE_PERIOD="${TMUX_POWERLINE_SEG_WEATHER_UPDATE_PERIOD_DEFAULT}"
 # Name of GNU grep binary if in PATH, or path to it.
   export TMUX_POWERLINE_SEG_WEATHER_GREP="${TMUX_POWERLINE_SEG_WEATHER_GREP_DEFAULT}"
-# Your location. Find a code that works for you:
-# 1. Go to Yahoo weather http://weather.yahoo.com/
-# 2. Find the weather for you location
-# 3. Copy the last numbers in that URL. e.g. "http://weather.yahoo.com/united-states/california/newport-beach-12796587/" has the numbers "12796587"
   export TMUX_POWERLINE_SEG_WEATHER_LOCATION="${TMUX_POWERLINE_SEG_WEATHER_LOCATION_DEFAULT}"
 # EORC
 }
@@ -166,10 +155,37 @@ __debug() {
   fi
 }
 
+f_to_c() {
+  echo "scale=0; (($1 - 32) * 5) / 9" | bc
+}
+
+c_to_f() {
+  echo "scale=1; (($1 * 9) / 5) + 32" | bc
+}
+
+__loc_sanity() {
+  __sanity "$TMUX_WEATHER_LOC_TS" ${loc_update_period}
+}
+
+__data_sanity() {
+  __sanity "$TMUX_WEATHER_DATA_TS" ${data_update_period}
+}
+
+__sanity() {
+  local last_ts="$1"
+  if [ ! -z "$last_ts" ]; then
+    time_now=$(date +%s)
+    up_to_date=$(echo "(${time_now}-${last_ts}) < $2" | bc)
+    echo "${up_to_date}"
+  else
+    echo -1
+  fi
+}
+
 # > 0 : time not expired
 # = 0 : timer expired
 # < 0 : file DNE
-fresh() {
+__fresh() {
   file_name="$1"
   if [ -f "$file_name" ]; then
     # sanity check...
@@ -182,5 +198,6 @@ fresh() {
   fi
 }
 
-
 # get_location
+# get_location
+# get_data
