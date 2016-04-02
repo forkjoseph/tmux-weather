@@ -79,7 +79,7 @@ get_data() {
 }
 
 generate_segmentrc() {
-	# read -d '' rccontents  << EORC
+# read -d '' rccontents  << EORC
 # What unit to use. Can be any of {c,f,k}.
   export WEATHER_UNIT="${UNIT}"
 }
