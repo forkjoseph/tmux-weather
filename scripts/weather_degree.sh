@@ -7,7 +7,7 @@ source "$CURRENT_DIR/helpers.sh"
 parse_data() {
   DEBUG=false
   location=$(get_location)
-  weather_data=$(get_data ${location})
+  weather_data=$(get_data)
 
   error=$(echo "$weather_data" | grep "error");
   if [ -n "$error" ]; then

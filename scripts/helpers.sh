@@ -11,7 +11,7 @@
 
 # The update period in seconds.
 data_update_period=600 # 10 mins
-loc_update_period=3600 # 60 mins
+loc_update_period=36000 # 10 hours
 update_period=600 # 10 mins
 tmp_file="/tmp/.tmux-weather.txt"
 
@@ -20,7 +20,7 @@ UNIT="ce"
 GEO_PROVIDER="http://ip-api.com/csv"
 FORECAST="https://api.forecast.io/forecast"
 FORECAST_API_KEY="eb55f102b6683b9af28d4a40abcb69be"
-# DEBUG=true
+DEBUG=true
 
 get_location() {
   local ts=$TMUX_WEATHER_LOC_TS
