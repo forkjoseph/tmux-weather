@@ -4,9 +4,9 @@ source "$CURRENT_DIR/helpers.sh"
 
 # condition_symbol=$(__get_condition_symbol "$condition" "$sunrise" "$sunset") 
 __get_condition_symbol() {
-  DEBUG=false
+  local DEBUG=false
   location=$(get_location)
-  weather_data=$(get_data ${location})
+  weather_data=$(get_data)
 
   IFS=',' read -a weather_vars <<< "$weather_data"
   len=${#weather_vars[@]}
