@@ -33,10 +33,12 @@ be able to use the plugin.
 Optional (but recommended) install `gawk` via your package manager of choice
 for better UTF-8 character support.
 
+<!--
 ### Limitations
 
 This plugin has some known limitations. Please read about it
 [here](docs/limitations.md).
+-->
 
 ### Docs
 
@@ -51,9 +53,10 @@ This plugin has some known limitations. Please read about it
 
 - [tmux-battery](https://github.com/forkjoseph/tmux-battery) - battery status 
 
-You might want to follow [@brunosutic](https://twitter.com/forkjoseph) on
+You might want to follow [@forkjoseph](https://twitter.com/forkjoseph) on
 twitter if you want to hear about new tmux plugins or feature updates.
 
+<!--
 ### Test suite
 
 This plugin has a pretty extensive integration test suite that runs on
@@ -65,6 +68,7 @@ When run locally, it depends on `vagrant`. Run it with:
     $ ./run-tests
 
 By default tests run in 2 vagrant VMs: ubuntu and centos.
+-->
 
 ### Contributions and new features
 
