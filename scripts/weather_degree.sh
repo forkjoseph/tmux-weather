@@ -39,7 +39,7 @@ parse_data() {
     fi
   done
   __debug "degree is ${degree}"
-  echo "${degree}$(echo "$WEATHER_UNIT" | tr '[:lower:]' '[:upper:]')"
+  echo "${degree}'$(echo "$WEATHER_UNIT" | tr '[:lower:]' '[:upper:]')"
 }
 
 parse_data
