@@ -17,10 +17,11 @@ tmp_file="/tmp/.tmux-weather.txt"
 
 # global vars
 UNIT="c"
-GEO_PROVIDER="http://ip-api.com/csv"
+GET_IP="dig +short myip.opendns.com @resolver1.opendns.com"
+GEO_PROVIDER="http://freegeoip.net/csv/"
 FORECAST="https://api.forecast.io/forecast"
 FORECAST_API_KEY="eb55f102b6683b9af28d4a40abcb69be"
-DEBUG=true
+DEBUG=false
 
 get_location() {
   local ts=$TMUX_WEATHER_LOC_TS
@@ -29,18 +30,21 @@ get_location() {
 
   local lat
   local lon
+  local ipaddr=$($GET_IP)
   if [ "${sanity}" -gt 0 ]; then
     lat=$TMUX_WEATHER_LOC_LAT
     lon=$TMUX_WEATHER_LOC_LON
   elif [ "${sanity}" -le 0 ]; then 
     # either timer expired or DNE
+    GEO_PROVIDER+=$ipaddr
+    __debug $GEO_PROVIDER
     location_data=$(curl --max-time 4 -s $GEO_PROVIDER)
-    # __debug $location_data
+    __debug $location_data
 
     # read as an array
     IFS=',' read -a location_vars <<< "$location_data"
-    lat=${location_vars[7]}
-    lon=${location_vars[8]}
+    lat=${location_vars[8]}
+    lon=${location_vars[9]}
  
     # cache...
     export TMUX_WEATHER_LOC_TS="$(date +%s)"
@@ -170,6 +174,5 @@ __fresh() {
   return
 }
 
-# get_location
 # get_location
 # get_data
