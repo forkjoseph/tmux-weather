@@ -40,16 +40,9 @@ This plugin has some known limitations. Please read about it
 [here](docs/limitations.md).
 -->
 
-### Docs
-
-- Most of the behavior of tmux-copycat can be customized via tmux options.
-  [Check out the full options list](docs/customizations.md).
-- To speed up the workflow you can define new bindings in `.tmux.conf` for
-  searches you use often, more info [here](docs/defining_new_stored_searches.md)
-
 ### Other goodies
 
-`tmux-copycat` works great with:
+`tmux-weather` works great with:
 
 - [tmux-battery](https://github.com/forkjoseph/tmux-battery) - battery status 
 
